@@ -1,0 +1,30 @@
+# Base class
+class SmartDevice:
+    def __init__(self, name):
+        self.name = name
+
+    def reset(self):
+        print(f"{self.name}: Resetting device to default settings")
+
+
+# Subclass
+class SmartLight(SmartDevice):
+    def reset(self):
+        print(f"{self.name}: Resetting light brightness and color settings 💡")
+
+
+# Function demonstrating polymorphism
+def reset_all_devices(devices_list):
+    for device in devices_list:
+        device.reset()   # Polymorphic call
+
+
+# Usage
+device1 = SmartDevice("Smart Speaker")
+device2 = SmartLight("Living Room Light")
+device3 = SmartDevice("Smart Thermostat")
+device4 = SmartLight("Bedroom Light")
+
+devices = [device1, device2, device3, device4]
+
+reset_all_devices(devices)
