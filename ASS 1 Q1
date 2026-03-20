@@ -1,0 +1,27 @@
+# Base class
+class Vehicle:
+    def __init__(self, name):
+        self.name = name
+
+    def move(self):
+        print(f"{self.name} is moving")
+
+# Subclass: Car
+class Car(Vehicle):
+    def move(self):
+        print(f"{self.name} is driving on the road 🚗")
+
+# Subclass: Bike
+class Bike(Vehicle):
+    def move(self):
+        print(f"{self.name} is riding on two wheels 🚴")
+
+# Creating objects
+v = Vehicle("Generic Vehicle")
+c = Car("Toyota")
+b = Bike("BMX")
+
+# Calling methods
+v.move()   # Base class method
+c.move()   # Overridden in Car
+b.move()   # Overridden in Bike
