@@ -1,0 +1,115 @@
+from abc import ABC, abstractmethod
+import json
+
+# ---------------------------
+# Sensor System (Modular)
+# ---------------------------
+class Sensor(ABC):
+    @abstractmethod
+    def read(self):
+        pass
+
+class Lidar(Sensor):
+    def read(self):
+        return "Lidar: Distance data collected"
+
+class GPS(Sensor):
+    def read(self):
+        return "GPS: Location coordinates acquired"
+
+
+# ---------------------------
+# Base Class (Abstraction)
+# ---------------------------
+class Drone(ABC):
+    def __init__(self, drone_id, battery_level=100):
+        self.drone_id = drone_id
+        self.__battery_level = battery_level        # Private
+        self._internal_temperature = 25             # Protected
+        self.sensors = []                           # Modular sensors
+
+    # Abstract method
+    @abstractmethod
+    def Maps(self, destination):
+        pass
+
+    # Concrete method
+    def update_battery(self, consumption):
+        self.__battery_level = max(0, self.__battery_level - consumption)
+
+    # Encapsulation: Read-only property
+    @property
+    def battery_level(self):
+        return self.__battery_level
+
+    # Add sensors dynamically (Dependency Injection)
+    def add_sensor(self, sensor: Sensor):
+        self.sensors.append(sensor)
+
+    # ---------------------------
+    # Serialization (Save state)
+    # ---------------------------
+    def save_state(self, filename):
+        state = {
+            "drone_id": self.drone_id,
+            "battery_level": self.__battery_level,
+            "temperature": self._internal_temperature,
+            "sensors": [type(sensor).__name__ for sensor in self.sensors]
+        }
+
+        with open(filename, "w") as f:
+            json.dump(state, f, indent=4)
+
+    # ---------------------------
+    # Reboot (Load state)
+    # ---------------------------
+    @classmethod
+    def reboot(cls, filename):
+        with open(filename, "r") as f:
+            state = json.load(f)
+
+        drone = cls(state["drone_id"], state["battery_level"])
+        drone._internal_temperature = state["temperature"]
+
+        # Recreate sensors
+        for sensor_name in state["sensors"]:
+            if sensor_name == "Lidar":
+                drone.add_sensor(Lidar())
+            elif sensor_name == "GPS":
+                drone.add_sensor(GPS())
+
+        return drone
+
+
+# ---------------------------
+# Subclass (Inheritance + Override)
+# ---------------------------
+class DeliveryDrone(Drone):
+    def Maps(self, destination):
+        sensor_data = [sensor.read() for sensor in self.sensors]
+        return f"DeliveryDrone navigating to {destination} using {sensor_data}"
+
+
+# ---------------------------
+# Simulation Example
+# ---------------------------
+if __name__ == "__main__":
+    # Create drone
+    drone1 = DeliveryDrone("DR-001")
+
+    # Inject sensors (Modular system)
+    drone1.add_sensor(Lidar())
+    drone1.add_sensor(GPS())
+
+    # Use methods
+    print(drone1.Maps("Warehouse A"))
+    drone1.update_battery(20)
+    print("Battery:", drone1.battery_level)
+
+    # Save state
+    drone1.save_state("drone_state.json")
+
+    # Reboot drone from file
+    drone2 = DeliveryDrone.reboot("drone_state.json")
+    print("Rebooted Drone Battery:", drone2.battery_level)
+    print(drone2.Maps("Warehouse B"))
